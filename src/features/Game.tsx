@@ -12,11 +12,21 @@ type Props = {
   setScene: React.Dispatch<React.SetStateAction<Scene>>;
 };
 
+type Parameter = {
+  count: number;
+  rand: number;
+  one: "chance" | "change";
+  other: "chance" | "change";
+};
+
 export const Game = ({ setScene }: Props) => {
-  const [count, setCount] = useState(1);
-  const [rand, setRand] = useState(r(0, nums(count)));
-  const [one, setOne] = useState("chance");
-  const [other, setOther] = useState("change");
+  const [param, setParam] = useState<Parameter>({
+    count: 1,
+    rand: r(0, nums(1)),
+    one: "chance",
+    other: "change",
+  });
+  const { count, rand, one, other } = param;
   const moons = useMemo(
     () =>
       new Array<string>(nums(count))
@@ -28,19 +38,18 @@ export const Game = ({ setScene }: Props) => {
   const { countTime } = useCountDown(3);
   const countText = countTime === 0 ? "START!!" : countTime;
 
-  useEffect(() => {
-    setRand(r(0, nums(count)));
-    if (Math.random() < 0.5) {
-      setOne(other);
-      setOther(one);
-    }
-  }, [count]);
-
   const onClick = async (i: number) => {
     if (i !== rand) return;
     await new Promise((resolve) => setTimeout(resolve, 280));
-    if (count < 5) setCount(count + 1);
-    else setScene("result");
+    if (count < 5) {
+      const b = Math.random() < 0.5;
+      setParam({
+        count: count + 1,
+        rand: r(0, nums(count + 1)),
+        one: b ? other : one,
+        other: b ? one : other,
+      });
+    } else setScene("result");
   };
 
   if (countTime >= 0) {
